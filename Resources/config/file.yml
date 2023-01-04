@@ -1,0 +1,8 @@
+services:
+    ip_bibliotheque.file_uploader:
+        class: Ip\BibliothequeBundle\FileUploader
+        arguments: { $targetDir: '%kernel.root_dir%/../web%ip_bibliotheque.root_folder%'}
+
+    ip_bibliotheque.file_downloader:
+        class: Ip\BibliothequeBundle\Service\IpBblDownload
+        arguments: { $targetDir: '%kernel.root_dir%/../web%ip_bibliotheque.root_folder%' }

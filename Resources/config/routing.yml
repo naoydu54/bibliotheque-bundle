@@ -1,0 +1,23 @@
+ip_bibliotheque_folders:
+    path:     /ajax/folders
+    defaults: { _controller: IpBibliothequeBundle:Bibliotheque:folders }
+
+ip_bibliotheque_rename:
+    path:     /ajax/rename
+    defaults: { _controller: IpBibliothequeBundle:Bibliotheque:renameElement }
+
+ip_bibliotheque_move:
+    path:     /ajax/move
+    defaults: { _controller: IpBibliothequeBundle:Bibliotheque:moveElement }
+
+ip_bibliotheque_add:
+    path:     /ajax/add
+    defaults: { _controller: IpBibliothequeBundle:Bibliotheque:add }
+
+ip_bibliotheque_delete:
+    path:     /ajax/delete
+    defaults: { _controller: IpBibliothequeBundle:Bibliotheque:deleteElement }
+
+ip_bibliotheque_pixlr_back:
+    path:     /pixelr/back/{idfolder}/{idfile}
+    defaults: { _controller: IpBibliothequeBundle:Bibliotheque:pixlrBack, idfolder: null, idfile: null }

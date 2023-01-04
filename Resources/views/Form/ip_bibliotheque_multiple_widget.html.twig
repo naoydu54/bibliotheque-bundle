@@ -1,0 +1,100 @@
+{% block ip_bibliotheque_multiple_widget %}
+    {% set randid = random() %}
+    {% spaceless %}
+        {{ include('@IpBibliotheque/Bibliotheque/helper/assets_css.html.twig', {'prefix': form.vars.prefix}) }}
+        {{ include("@IpBibliotheque/Bibliotheque/helper/assets_js_multi.html.twig", {'prefix': form.vars.prefix}) }}
+        <div class="row">
+            <div class="col-md-12">
+                <div class="ipb-multi-file-preview">
+                    <div id="ipb_clear_{{ randid }}" class="close">×</div>
+                    <table id="ipb_biblio_preview{{ randid }}" class="table table-bordered table-hover">
+                        <tbody>
+
+                        {% for child in form.children %}
+                            <tr>
+                                <td class="ipb-multi-file-content">
+                                    {{ ipBblImageView(child.vars.value.file.id,['img-preview']) }}
+                                </td>
+                                <td>
+                                    {{ child.vars.value.file.name }}
+                                </td>
+                                <td class="ipb_files_actions">
+                                        <span class="file-drag-handle drag-handle-init text-info" title="Move / Rearrange">
+                                            <i class="glyphicon glyphicon-menu-hamburger"></i>
+                                        </span>
+
+                                    <div class="ipb_files_actions_btn">
+                                        <button type="button" class="btn btn-xs btn-default ip_bibliotheque_rm_image{{ randid }}" title="Remove file" data-url="/site/file-delete" data-key="1">
+                                            <i class="glyphicon glyphicon-trash text-danger"></i>
+                                        </button>
+                                    </div>
+                                </td>
+
+                                <input type="hidden" class="ipbblfile" name="{{ child.vars.full_name }}[file]" value="{{ child.vars.value.file.id }}">
+                                <input type="hidden" class="ipbblposition" name="{{ child.vars.full_name }}[position]" value="{{ child.vars.value.position }}">
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="input-group file-caption-main">
+                    <div class="form-control">
+                        <div id="ipb_nb_files_{{ randid }}">
+                            <i class="glyphicon glyphicon-file kv-caption-icon"></i>
+                            {{ form.vars.value | length }} fichier(s) séléctionné(s)
+                        </div>
+                    </div>
+
+                    <div class="input-group-btn">
+                        <div id="ip_bibliotheque_add_image{{ randid }}" class="btn btn-primary btn-file">
+                            <i class="glyphicon glyphicon-folder-open"></i>
+                            Parcourir
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="popupBilbio{{ randid }}" class="popup">
+            <div class="popup-content" style="height: 615px">
+                <div class="pull-right">
+                    <button type="button" class="btn btn-sm btn-danger close-popup">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                <div id="loaderbiblio" style="position: absolute;left: 50%;top: 45%;">
+                    <i class="fa fa-circle-o-notch fa-spin fa-3x fa-fw"></i>
+                </div>
+                <div id="bibliotheque{{ randid }}"></div>
+            </div>
+        </div>
+
+
+
+
+
+
+
+        {#<div id="ip_bibliotheque_action{{ randid }}" class="ip_bibliotheque_action btn-group {% if value is not empty %}ip_bbl_btn-group{% endif %}">
+            {% if value is not empty %}
+                <button type="button" id="ip_bibliotheque_add_image{{ randid }}" class="btn btn-primary">
+                    <i class="fa fa-edit"></i>
+                    Modifier
+                </button>
+                <button type="button" id="ip_bibliotheque_rm_image{{ randid }}" class="btn btn-danger">
+                    <i class="fa fa-trash"></i>
+                    Supprimer
+                </button>
+            {% else %}
+                <button type="button" id="" class="btn btn-primary">
+                    <i class="fa fa-plus"></i>
+                    Ajouter des images
+                </button>
+            {% endif %}
+        </div>#}
+
+
+
+        {#<input type="hidden" id="{{ form.vars.id }}" {{ block('widget_attributes') }} value="{% if value is not empty %}{{ value }}{% endif %}"/>#}
+    {% endspaceless %}
+{% endblock ip_bibliotheque_multiple_widget %}

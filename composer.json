@@ -1,0 +1,36 @@
+{
+    "name": "ip/bibliothequebundle",
+    "description": "Bundle de Bibliotheque",
+    "keywords": [
+        "Info Plus",
+        "bibliotheque bundle"
+    ],
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Info Plus",
+            "email": "contact@info-plus.fr"
+        }
+    ],
+    "archive": {
+        "exclude": [
+            "/Entity"
+        ]
+    },
+    "require": {
+        "php": ">=5.4",
+        "components/ipbibliotheque": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ip\\BibliothequeBundle\\": ""
+        }
+    },
+	 "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/naoydu54/component-ipbibliotheque.git"
+        }
+    ]
+}

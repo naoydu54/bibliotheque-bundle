@@ -1,0 +1,143 @@
+<script>
+    document.addEventListener("DOMContentLoaded", function (event) {
+        var scripts = [
+            '{{ asset("#{prefix}/plugins/pixlr/pixlr.js") }}',
+            '{{ asset("#{prefix}/plugins/nicescroll/jquery.nicescroll.min.js") }}',
+            '{{ asset("#{prefix}/plugins/bootstrap-dialog/js/bootstrap-dialog.min.js") }}',
+            '{{ asset("#{prefix}/plugins/EventEmitter/EventEmitter.min.js") }}',
+            '{{ asset("#{prefix}/plugins/context-menu/jquery.ui.position.js") }}',
+            '{{ asset("#{prefix}/plugins/context-menu/jquery.contextMenu.js") }}',
+            '{{ asset("#{prefix}/plugins/is.js/is.min.js") }}',
+            '{{ asset("#{prefix}/plugins/dropzone/min/dropzone.min.js") }}',
+            '{{ asset("#{prefix}/plugins/unveil/jquery.unveil.js") }}',
+            '{{ asset("#{prefix}/plugins/mustache/mustache.min.js") }}',
+            '{{ asset("#{prefix}/plugins/bibliotheque/jquery.bibliotheque.js") }}'
+        ];
+
+        var queue = scripts.map(function (script) {
+            return $.getScript(script);
+        });
+
+        $.when.apply(null, queue).done(function () {
+            pixlr.settings.target = 'http://developer.pixlr.com/save_post_modal.php';
+            pixlr.settings.exit = 'http://developer.pixlr.com/exit_modal.html';
+            pixlr.settings.credentials = true;
+            pixlr.settings.method = 'post';
+
+
+            var p = new Bibliotheque('#bibliotheque{{ randid }}', {
+                ajax: "{{ path('ip_bibliotheque_folders') }}",
+                urlUpload: "{{ path('ip_bibliotheque_add') }}",
+                allowUpload: true,
+                root: "{{ asset("#{ prefix }/plugins/bibliotheque") }}",
+                onFileDblClicked: function (file) {
+                    console.log(file);
+                },
+                onFileSelected: function(files){
+                    $.each(function(k,v){
+                        console.log(v);
+                    });
+                },
+                onRenameFolder: function (folder) {
+                    $.ajax({
+                        url: "{{ path('ip_bibliotheque_rename') }}",
+                        root: "{{ asset("#{prefix}/plugins/bibliotheque") }}",
+                        method: 'POST',
+                        data: {
+                            type: 'folder',
+                            id: folder.id,
+                            name: folder.name
+                        },
+                        success: function (response) {
+                            //console.log(response);
+                        },
+                        error: function (jqxhr) {
+                            console.log(jqxhr.responseText);
+                        }
+                    });
+                },
+                onRenameFile: function (file) {
+                    //console.log(file);
+                    $.ajax({
+                        url: "{{ path('ip_bibliotheque_rename') }}",
+                        method: 'POST',
+                        data: {
+                            type: 'file',
+                            id: file.id,
+                            name: file.name
+                        },
+                        success: function (response) {
+                            //console.log(response);
+                        },
+                        error: function (jqxhr) {
+                            console.log(jqxhr.responseText);
+                        }
+                    });
+                },
+                onAddFolder: function (parent, title) {
+                    return $.ajax({
+                        url: "{{ path('ip_bibliotheque_add') }}",
+                        method: 'POST',
+                        data: {
+                            id_parent: parent.id,
+                            name: title,
+                            type: 'folder'
+                        },
+                        dataType: 'json'
+                    });
+                },
+                onSendingFile: function (file, parent, xhr, formData) {
+                    formData.append('id_maitre', parent.id);
+                },
+                onDeleteFile: function (file) {
+                    $.ajax({
+                        url: "{{ path('ip_bibliotheque_delete') }}",
+                        method: 'POST',
+                        data: {
+                            type: 'file',
+                            id: file.id
+                        },
+                        success: function (response) {
+                            //console.log(response);
+                        },
+                        error: function (jqxhr) {
+                            console.log(jqxhr.responseText);
+                        }
+                    });
+                },
+                onMoveFile: function(file, folder){
+
+                    console.log(file.id);
+                    console.log(folder.id);
+
+                    $.ajax({
+                        url: "{{ path('ip_bibliotheque_move') }}",
+                        method: 'POST',
+                        data: {
+                            type: 'file',
+                            fileid: file.id,
+                            folderid: folder.id
+                        },
+                        success: function (response) {
+                            console.log(response);
+                        },
+                        error: function (jqxhr) {
+                            console.log(jqxhr.responseText);
+                        }
+                    });
+                },
+                multiple: '{{ multiple }}'
+            });
+            p.init();
+
+            function removeloader() {
+                $('#loaderbiblio').remove();
+            }
+
+            // use setTimeout() to execute
+            setTimeout(removeloader, 400);
+        }).fail(function(jqxhr){
+            console.error(jqxhr.responseText);
+        });
+    });
+</script>

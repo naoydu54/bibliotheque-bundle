@@ -1,0 +1,42 @@
+services:
+    ip_bibliotheque.file_manager.default:
+        class: Ip\BibliothequeBundle\Doctrine\FileManager
+        public: false
+        lazy: true
+        arguments: { $em: "@doctrine.orm.entity_manager", $class: "%ip_bibliotheque.model.file.class%"}
+
+    ip_bibliotheque.folder_manager.default:
+        class: Ip\BibliothequeBundle\Doctrine\FolderManager
+        public: false
+        lazy: true
+        arguments: { $em: "@doctrine.orm.entity_manager", $class: "%ip_bibliotheque.model.folder.class%"}
+
+    ip_bibliotheque.single.form.type:
+        class: Ip\BibliothequeBundle\Form\Type\IpBibliothequeSingleType
+        arguments: { $prefix: '%ip_bibliotheque.assets_path%' }
+        tags:
+            - { name: form.type  }
+
+    ip_bibliotheque.multiple.form.type:
+        class: Ip\BibliothequeBundle\Form\Type\IpBibliothequeMultipleType
+        arguments: { $prefix: '%ip_bibliotheque.assets_path%', $fileClass: '%ip_bibliotheque.model.file.class%' }
+        tags:
+            - { name: form.type }
+
+    ip_bibliotheque.ordered.form.type:
+        class: Ip\BibliothequeBundle\Form\Type\OrderedFileType
+        arguments: { $fileClass: '%ip_bibliotheque.model.file.class%' }
+        tags:
+            - { name: form.type }
+
+    ip_bibliotheque.view:
+        class: Ip\BibliothequeBundle\Service\IpBblView
+        arguments: { $templating: '@twig', $prefix: '%ip_bibliotheque.assets_path%' }
+        tags:
+            - { name : twig.extension }
+
+    ip_bibliotheque.image.view:
+        class: Ip\BibliothequeBundle\Service\IpBblImageView
+        arguments: { $entityManager: '@doctrine.orm.entity_manager', $fileClass: '%ip_bibliotheque.model.file.class%', $uploadFolder: '%ip_bibliotheque.root_folder%', $defaultImage: '%ip_bibliotheque.default_image%' }
+        tags:
+            - { name : twig.extension }

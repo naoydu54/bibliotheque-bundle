@@ -1,0 +1,239 @@
+<script>
+    document.addEventListener("DOMContentLoaded", function (event) {
+        var scripts = [
+            '{{ asset("#{prefix}/plugins/pixlr/pixlr.js") }}',
+            '{{ asset("#{prefix}/plugins/nicescroll/jquery.nicescroll.min.js") }}',
+            '{{ asset("#{prefix}/plugins/bootstrap-dialog/js/bootstrap-dialog.min.js") }}',
+            '{{ asset("#{prefix}/plugins/EventEmitter/EventEmitter.min.js") }}',
+            '{{ asset("#{prefix}/plugins/context-menu/jquery.ui.position.js") }}',
+            '{{ asset("#{prefix}/plugins/context-menu/jquery.contextMenu.js") }}',
+            '{{ asset("#{prefix}/plugins/is.js/is.min.js") }}',
+            '{{ asset("#{prefix}/plugins/dropzone/min/dropzone.min.js") }}',
+            '{{ asset("#{prefix}/plugins/unveil/jquery.unveil.js") }}',
+            '{{ asset("#{prefix}/plugins/mustache/mustache.min.js") }}',
+            '{{ asset("#{prefix}/plugins/bibliotheque/jquery.bibliotheque.js") }}'
+        ];
+
+        var queue = scripts.map(function (script) {
+            return $.getScript(script);
+        });
+
+        $.when.apply(null, queue).done(function () {
+
+            var container = $('#ipb_biblio_preview{{ randid }}');
+            var index = container.find('.ipbblfile').length;
+
+            pixlr.settings.target = 'http://developer.pixlr.com/save_post_modal.php';
+            pixlr.settings.exit = 'http://developer.pixlr.com/exit_modal.html';
+            pixlr.settings.credentials = true;
+            pixlr.settings.method = 'post';
+
+            function getSelected() {
+                var selected = [];
+
+                $('#ipb_biblio_preview{{ randid }}').find('input').each(function () {
+                    selected.push($(this).val());
+                });
+
+                return selected;
+            }
+
+            function reorder() {
+                var i = 1;
+                $('.ipbblposition').each(function(){
+                    $(this).val(i);
+                    i++;
+                });
+            }
+
+            function addRemoveAction() {
+
+                var sortableList = $("#ipb_biblio_preview{{ randid }} tbody")
+
+                $('#ipb_clear_{{ randid }}').unbind('click');
+                $('.ip_bibliotheque_rm_image{{ randid }}').unbind('click');
+
+                if(sortableList.hasClass("ui-sortable")){
+                    sortableList.sortable("destroy");
+                }
+
+                $('#ipb_clear_{{ randid }}').click(function () {
+                    $('#ipb_biblio_preview{{ randid }}').find('tbody').html('');
+                    $('#ipb_nb_files_{{ randid }}').html('<i class="glyphicon glyphicon-file"></i> 0 fichier(s) séléctionné(s)');
+                });
+
+                $('.ip_bibliotheque_rm_image{{ randid }}').click(function () {
+                    $(this).parents('tr').remove();
+
+                    $('#ipb_nb_files_{{ randid }}').html('<i class="glyphicon glyphicon-file"></i> ' + $('#ipb_biblio_preview{{ randid }}').find('tr').length + ' fichier(s) séléctionné(s)');
+                });
+
+                sortableList.sortable({
+                    items: 'tr',
+                    handle: ".file-drag-handle",
+                    placeholder: "ui-state-highlight",
+                    update: function(){
+                        reorder();
+                    }
+                }).disableSelection();
+            }
+
+            addRemoveAction();
+
+            $('#ip_bibliotheque_add_image{{ randid }}').click(function () {
+                var popup = $('#popupBilbio{{ randid }}');
+                var closePopup = popup.find('.close-popup').first();
+
+                popup.css('display', 'block');
+
+                var p = new Bibliotheque('#bibliotheque{{ randid }}', {
+                    ajax: "{{ path('ip_bibliotheque_folders') }}",
+                    urlUpload: "{{ path('ip_bibliotheque_add') }}",
+                    allowUpload: true,
+                    root: "{{ asset("#{ prefix }/plugins/bibliotheque") }}",
+                    onFileDblClicked: function (file) {
+                        //console.log(file);
+                        $('#biblioimgcontainer{{ randid }}').html('<img src="' + file.url + '" alt="' + file.name + '" class="img-thumbnail img-preview">');
+                        $('#{{ form.vars.id }}').val(file.id);
+                        $('#ip_bibliotheque_add_image{{ randid }}').html('<i class="fa fa-edit"></i> Modifier');
+                        $('#ip_bibliotheque_action{{ randid }}').addClass('ip_bbl_btn-group');
+                        $('#ip_bibliotheque_action{{ randid }}').find('#ip_bibliotheque_rm_image{{ randid }}').each(function () {
+                            $(this).off('click');
+                            $(this).remove();
+                        });
+                        $('#ip_bibliotheque_action{{ randid }}').append('<button type="button" class="btn btn-danger ip_bibliotheque_rm_image{{ randid }}"><i class="fa fa-trash"></i> Supprimer</button>');
+                        addRemoveAction();
+                        closePopup.click();
+                    },
+                    onRenameFolder: function (folder) {
+                        $.ajax({
+                            url: "{{ path('ip_bibliotheque_rename') }}",
+                            root: "{{ asset("#{prefix}/plugins/bibliotheque") }}",
+                            method: 'POST',
+                            data: {
+                                type: 'folder',
+                                id: folder.id,
+                                name: folder.name
+                            },
+                            success: function (response) {
+                                //console.log(response);
+                            },
+                            error: function (jqxhr) {
+                                console.log(jqxhr.responseText);
+                            }
+                        });
+                    },
+                    onRenameFile: function (file) {
+                        //console.log(file);
+                        $.ajax({
+                            url: "{{ path('ip_bibliotheque_rename') }}",
+                            method: 'POST',
+                            data: {
+                                type: 'file',
+                                id: file.id,
+                                name: file.name
+                            },
+                            success: function (response) {
+                                //console.log(response);
+                            },
+                            error: function (jqxhr) {
+                                console.log(jqxhr.responseText);
+                            }
+                        });
+                    },
+                    onAddFolder: function (parent, title) {
+                        return $.ajax({
+                            url: "{{ path('ip_bibliotheque_add') }}",
+                            method: 'POST',
+                            data: {
+                                id_parent: parent.id,
+                                name: title,
+                                type: 'folder'
+                            },
+                            dataType: 'json'
+                        });
+                    },
+                    onSendingFile: function (file, parent, xhr, formData) {
+                        formData.append('id_maitre', parent.id);
+                    },
+                    onDeleteFile: function (file) {
+                        $.ajax({
+                            url: "{{ path('ip_bibliotheque_delete') }}",
+                            method: 'POST',
+                            data: {
+                                type: 'file',
+                                id: file.id
+                            },
+                            success: function (response) {
+                                console.log(response);
+                            },
+                            error: function (jqxhr) {
+                                console.log(jqxhr.responseText);
+                            }
+                        });
+                    },
+                    onFileSelected: function (files) {
+                        $.each(files, function (k, v) {
+                            var findFile = false;
+                            $('#ipb_biblio_preview{{ randid }}').find('input').each(function () {
+                                if (v.id == $(this).val()) {
+                                    findFile = true;
+                                }
+                            });
+
+                            if (!findFile) {
+                                var html = '<tr>';
+                                html += '<td class="ipb-multi-file-content">';
+                                html += '<img src="' + v.url + '" alt="rebellabs-sql-cheat-sheet.png" class=" img-preview">';
+                                html += '</td>';
+                                html += '<td>';
+                                html += v.name;
+                                html += '</td>';
+                                html += '<td class="ipb_files_actions">';
+                                html += '<div class="ipb_files_actions_btn">';
+                                html += '<span class="file-drag-handle drag-handle-init text-info" title="Move / Rearrange">';
+                                html += '<i class="glyphicon glyphicon-menu-hamburger"></i>';
+                                html += '</span>';
+                                html += '<button type="button" class="btn btn-xs btn-default ip_bibliotheque_rm_image{{ randid }}" title="Remove file">';
+                                html += '<i class="glyphicon glyphicon-trash text-danger"></i>';
+                                html += '</button>';
+                                html += '</div>';
+                                html += '</td>';
+                                html += '<input type="hidden" class="ipbblfile" name="{{ form.vars.full_name }}[__name__][file]" value="' + v.id + '">';
+                                html += '<input type="hidden" class="ipbblposition" name="{{ form.vars.full_name }}[__name__][position]" value="0">';
+                                html += '</tr>';
+
+                                html = html.replace(/__name__/g, index);
+
+                                $('#ipb_biblio_preview{{ randid }}').find('tbody').append(html);
+                                reorder();
+                                index++;
+                            }
+                        });
+
+                        $('#ipb_nb_files_{{ randid }}').html('<i class="glyphicon glyphicon-file kv-caption-icon"></i> ' + files.length + ' fichier(s) séléctionné(s)');
+                        addRemoveAction();
+                        closePopup.click();
+                    },
+                    multiple: 'true'
+                });
+                p.init();
+
+                function removeloader() {
+                    $('#loaderbiblio').remove();
+                }
+
+                // use setTimeout() to execute
+                setTimeout(removeloader, 400);
+
+                closePopup.click(function () {
+                    p.destroy();
+                    popup.css('display', 'none');
+                });
+
+            });
+        }).fail(function(jqxhr){
+            console.error(jqxhr.responseText);
+        });
+    });
+</script>
